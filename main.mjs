@@ -10,18 +10,22 @@ wss.on('connection', function connection(ws) {
     ws.on('error', console.error);
 });
 
-wss.on('error', function(error) {
+wss.on('error', function (error) {
     console.log(error);
 });
 
 if (kinect.open()) {
-    kinect.on('bodyFrame', bodyFrame => {
+    kinect.on('multiSourceFrame', frame => {
         wss.clients.forEach(function each(client) {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(bodyFrame));
+                client.send(JSON.stringify({
+                    bodies: frame.body.bodies
+                }));
             }
         });
     });
 
-    kinect.openBodyReader();
+    kinect.openMultiSourceReader({
+        frameTypes: Kinect2.FrameType.body
+    });
 }
